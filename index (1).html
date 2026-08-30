@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>รหัสโชคดีประจำตัว — คำนวณเลขมงคลวันเกิด</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@700;900&family=Noto+Serif+Thai:wght@300;400;600;700&display=swap');
+
+:root{
+  --bg-void:#150a08;
+  --bg-maroon:#2b0f10;
+  --bg-maroon-2:#3a1414;
+  --gold:#c9a227;
+  --gold-light:#e8c766;
+  --gold-dim:#8a6a1f;
+  --cream:#efe3c8;
+  --cream-dim:#c9b998;
+  --shadow-deep: 0 20px 60px rgba(0,0,0,.6);
+  --radius-amulet: 18px;
+}
+*{box-sizing:border-box;}
+html,body{
+  margin:0;padding:0;min-height:100%;
+  background:
+    radial-gradient(ellipse at 50% -10%, rgba(201,162,39,.10), transparent 55%),
+    radial-gradient(ellipse at 50% 110%, rgba(122,31,31,.25), transparent 60%),
+    var(--bg-void);
+  color:var(--cream);
+  font-family:'Noto Serif Thai','Cinzel',serif;
+  -webkit-font-smoothing:antialiased;
+}
+.page{min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:48px 20px 80px;}
+.eyebrow{font-family:'Cinzel',serif;letter-spacing:.35em;text-transform:uppercase;font-size:12px;color:var(--gold-dim);margin-bottom:10px;}
+h1.title{font-family:'Noto Serif Thai','Cinzel Decorative',serif;font-weight:700;font-size:clamp(28px,5vw,44px);text-align:center;color:var(--gold-light);text-shadow:0 0 24px rgba(201,162,39,.35), 0 2px 0 rgba(0,0,0,.4);margin:0 0 6px;}
+p.subtitle{text-align:center;color:var(--cream-dim);font-size:15px;max-width:520px;line-height:1.8;margin:0 0 40px;}
+.amulet{position:relative;background:linear-gradient(180deg, var(--bg-maroon), var(--bg-maroon-2));border:1px solid var(--gold-dim);border-radius:var(--radius-amulet);box-shadow:var(--shadow-deep), inset 0 0 40px rgba(201,162,39,.05);padding:40px;width:100%;max-width:640px;}
+.amulet::before{content:"";position:absolute;inset:8px;border:1px solid rgba(201,162,39,.35);border-radius:calc(var(--radius-amulet) - 6px);pointer-events:none;}
+.amulet::after{content:"";position:absolute;top:-1px;left:50%;transform:translateX(-50%);width:60%;height:1px;background:linear-gradient(90deg, transparent, var(--gold), transparent);}
+.date-row{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+.field-box select{
+  width:100%;
+  appearance:none;
+  -webkit-appearance:none;
+  background:linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.15));
+  border:1.5px solid var(--gold-dim);
+  border-radius:10px;
+  color:var(--gold-light);
+  font-family:'Cinzel',serif;
+  font-weight:600;
+  font-size:17px;
+  text-align:center;
+  text-align-last:center;
+  padding:16px 8px 22px;
+  outline:none;
+  cursor:pointer;
+  transition:border-color .25s, box-shadow .25s;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9'%3E%3Cpath d='M1 1l6 6 6-6' stroke='%23c9a227' stroke-width='1.6' fill='none'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:center bottom 8px;
+}
+.field-box select:hover,.field-box select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,162,39,.15), 0 0 22px rgba(201,162,39,.2);}
+.field-box select option{background:#1c0d0d;color:var(--cream);}
+.thai-label{font-family:'Noto Serif Thai',serif;font-size:14px;color:var(--cream-dim);text-align:center;margin-top:8px;}
+.cta{display:block;width:100%;margin-top:38px;padding:18px;border:1px solid var(--gold);border-radius:10px;background:linear-gradient(180deg, rgba(201,162,39,.18), rgba(201,162,39,.05));color:var(--gold-light);font-family:'Cinzel',serif;font-weight:700;font-size:16px;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .25s;}
+.cta:hover{background:linear-gradient(180deg, rgba(201,162,39,.32), rgba(201,162,39,.1));box-shadow:0 0 30px rgba(201,162,39,.35);transform:translateY(-1px);}
+.cta:active{transform:translateY(0);}
+.error-msg{color:#e08a8a;font-size:13px;text-align:center;margin-top:14px;min-height:18px;font-family:'Noto Serif Thai',serif;}
+.expired-box{display:none;align-items:center;justify-content:center;min-height:160px;}
+.expired-box .msg{font-family:'Noto Serif Thai','Cinzel Decorative',serif;font-weight:700;font-size:clamp(24px,5vw,34px);color:var(--gold-light);text-shadow:0 0 24px rgba(201,162,39,.35);text-align:center;}
+@media (max-width:480px){.amulet{padding:26px 18px;}.date-row{gap:10px;}}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="eyebrow">เลขศาสตร์โบราณ · ตำราดวงชะตา</div>
+  <h1 class="title">รหัสโชคดีประจำตัว</h1>
+  <p class="subtitle">
+    เลือกวันเกิด เดือนเกิด และปีนักษัตรที่ท่านเกิด
+    เพื่อคำนวณรหัสเลขมงคลตามหลักเลขศาสตร์โบราณ
+  </p>
+
+  <form class="amulet" id="birthForm" novalidate>
+    <div class="date-row">
+      <div class="field-box">
+        <select id="day" required aria-label="วัน"></select>
+        <div class="thai-label">วัน</div>
+      </div>
+      <div class="field-box">
+        <select id="month" required aria-label="เดือน"></select>
+        <div class="thai-label">เดือน</div>
+      </div>
+      <div class="field-box">
+        <select id="year" required aria-label="ปีนักษัตร"></select>
+        <div class="thai-label">ปีนักษัตร</div>
+      </div>
+    </div>
+
+    <button type="submit" class="cta">คำนวณรหัสโชคดี</button>
+    <div class="error-msg" id="errorMsg"></div>
+  </form>
+
+  <div class="amulet expired-box" id="expiredBox">
+    <div class="msg">หมดเวลาแล้วค่ะ</div>
+  </div>
+
+</div>
+
+<script>
+  // วันหมดเวลา: 30 กันยายน 2536 (พ.ศ.) = 30 Sep 2026 (ค.ศ.)
+  var EXPIRY_DATE = new Date(2569 - 543, 8, 30, 23, 59, 59);
+
+  if (new Date() > EXPIRY_DATE){
+    document.getElementById('birthForm').style.display = 'none';
+    var expiredBox = document.getElementById('expiredBox');
+    expiredBox.style.display = 'flex';
+  } else {
+
+  var daySel = document.getElementById('day');
+  var monthSel = document.getElementById('month');
+  var yearSel = document.getElementById('year');
+  var errorMsg = document.getElementById('errorMsg');
+
+  var DAY_TH = ["อาทิตย์","จันทร์","อังคาร","พุธ","พฤหัส","ศุกร์","เสาร์"];
+  var ZODIAC_TH = ["ชวด","ฉลู","ขาล","เถาะ","มะโรง","มะเส็ง","มะเมีย","มะแม","วอก","ระกา","จอ","กุน"];
+
+  DAY_TH.forEach(function(d, i){
+    var opt = document.createElement('option');
+    opt.value = i + 1; opt.textContent = d;
+    daySel.appendChild(opt);
+  });
+
+  for (var m = 1; m <= 12; m++){
+    var opt2 = document.createElement('option');
+    opt2.value = m; opt2.textContent = m;
+    monthSel.appendChild(opt2);
+  }
+
+  ZODIAC_TH.forEach(function(z, i){
+    var opt3 = document.createElement('option');
+    opt3.value = i + 1; opt3.textContent = z;
+    yearSel.appendChild(opt3);
+  });
+
+  document.getElementById('birthForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var day = parseInt(daySel.value, 10);
+    var month = parseInt(monthSel.value, 10);
+    var zodiac = parseInt(yearSel.value, 10);
+
+    if (!day || !month || !zodiac){
+      errorMsg.textContent = "กรุณาเลือกวัน เดือน และปีนักษัตรให้ครบถ้วน";
+      return;
+    }
+
+    errorMsg.textContent = "";
+    window.location.href = 'result.html?d=' + day + '&m=' + month + '&z=' + zodiac;
+  });
+
+  } // end expiry check
+</script>
+</body>
+</html>
